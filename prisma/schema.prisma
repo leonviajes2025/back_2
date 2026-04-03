@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Contacto {
+  id                 Int      @id @default(autoincrement())
+  nombre             String
+  email              String   @unique
+  telefono           String
+  aceptaPromociones  Boolean  @default(false)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  @@map("contactos")
+}
+
+model Producto {
+  id                 Int      @id @default(autoincrement())
+  nombre             String
+  descripcion        String
+  precio             Decimal  @db.Decimal(10, 2)
+  imagenUrl          String
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  @@map("productos")
+}
+
+model ContactoWhats {
+  id            Int      @id @default(autoincrement())
+  cotizacion    String
+  fechaCreacion DateTime @default(now())
+
+  @@map("contactos_whats")
+}
