@@ -18,9 +18,12 @@ async function upsertProducto(data) {
   return prisma.producto.create({ data });
 }
 
-async function upsertContactoWhats(cotizacion) {
+async function upsertContactoWhats(data) {
   const existing = await prisma.contactoWhats.findFirst({
-    where: { cotizacion },
+    where: {
+      nombre: data.nombre,
+      cotizacion: data.cotizacion,
+    },
     select: { id: true },
   });
 
@@ -29,7 +32,7 @@ async function upsertContactoWhats(cotizacion) {
   }
 
   return prisma.contactoWhats.create({
-    data: { cotizacion },
+    data,
   });
 }
 
@@ -91,7 +94,10 @@ async function main() {
     activo: false,
   });
 
-  await upsertContactoWhats("Necesito una cotizacion para 50 piezas del Producto Base.");
+  await upsertContactoWhats({
+    nombre: "Ana Perez",
+    cotizacion: "Necesito una cotizacion para 50 piezas del Producto Base.",
+  });
 
   console.log("Seed completado correctamente.");
 }

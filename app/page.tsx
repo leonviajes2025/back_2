@@ -42,7 +42,7 @@ const endpoints = [
   {
     method: "POST",
     path: "/api/contactos-whats",
-    description: "Crea una nueva solicitud de cotizacion de WhatsApp.",
+    description: "Crea una nueva solicitud de cotizacion de WhatsApp con nombre y cotizacion.",
   },
 ];
 

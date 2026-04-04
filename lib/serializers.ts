@@ -46,11 +46,13 @@ export function serializeProducto(producto: {
 
 export function serializeContactoWhats(contactoWhats: {
   id: number;
+  nombre: string | null;
   cotizacion: string;
   fechaCreacion: Date;
 }) {
   return {
     id: contactoWhats.id,
+    nombre: contactoWhats.nombre,
     cotizacion: contactoWhats.cotizacion,
     fechaCreacion: contactoWhats.fechaCreacion.toISOString(),
   };

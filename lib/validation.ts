@@ -28,6 +28,7 @@ export type ProductoUpdateInput = {
 };
 
 export type ContactoWhatsInput = {
+  nombre: string | null;
   cotizacion: string;
 };
 
@@ -239,6 +240,15 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
   }
 
   const body = payload as Record<string, unknown>;
+  let nombre: string | null = null;
+
+  if ("nombre" in body && body.nombre !== null && body.nombre !== undefined) {
+    if (!isNonEmptyString(body.nombre)) {
+      return { success: false, message: "El nombre debe ser un texto no vacio o null." };
+    }
+
+    nombre = body.nombre.trim();
+  }
 
   if (!isNonEmptyString(body.cotizacion)) {
     return { success: false, message: "La cotizacion es obligatoria." };
@@ -247,6 +257,7 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
   return {
     success: true,
     data: {
+      nombre,
       cotizacion: body.cotizacion.trim(),
     },
   };

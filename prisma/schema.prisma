@@ -37,6 +37,7 @@ model Producto {
 
 model ContactoWhats {
   id            Int      @id @default(autoincrement())
+  nombre        String?
   cotizacion    String
   fechaCreacion DateTime @default(now())
   detalles      CotizacionDetalle[]
