@@ -31,6 +31,7 @@ export type ProductoUpdateInput = {
 export type ContactoWhatsInput = {
   nombre: string | null;
   cotizacion: string;
+  fechaEntregaEstimada: Date | null;
 };
 
 export type CotizacionDetalleCreateInput = {
@@ -93,6 +94,35 @@ function parsePositiveInt(value: unknown): number | null {
   const parsed = Number.parseInt(normalized, 10);
 
   return parsed > 0 ? parsed : null;
+}
+
+function parseDateOnly(value: unknown): Date | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalized);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
 }
 
 export function validateContactoInput(payload: unknown): ValidationResult<ContactoInput> {
@@ -252,6 +282,7 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
 
   const body = payload as Record<string, unknown>;
   let nombre: string | null = null;
+  let fechaEntregaEstimada: Date | null = null;
 
   if ("nombre" in body && body.nombre !== null && body.nombre !== undefined) {
     if (!isNonEmptyString(body.nombre)) {
@@ -265,11 +296,24 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
     return { success: false, message: "La cotizacion es obligatoria." };
   }
 
+  if (
+    "fechaEntregaEstimada" in body &&
+    body.fechaEntregaEstimada !== null &&
+    body.fechaEntregaEstimada !== undefined
+  ) {
+    fechaEntregaEstimada = parseDateOnly(body.fechaEntregaEstimada);
+
+    if (fechaEntregaEstimada === null) {
+      return { success: false, message: "fechaEntregaEstimada debe tener formato YYYY-MM-DD o null." };
+    }
+  }
+
   return {
     success: true,
     data: {
       nombre,
       cotizacion: body.cotizacion.trim(),
+      fechaEntregaEstimada,
     },
   };
 }

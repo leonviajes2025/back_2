@@ -119,11 +119,13 @@ Ejemplo de payload para crear una solicitud de WhatsApp:
 ```json
 {
   "nombre": null,
-  "cotizacion": "Necesito una cotizacion para 10 piezas del Producto Base"
+  "cotizacion": "Necesito una cotizacion para 10 piezas del Producto Base",
+  "fechaEntregaEstimada": "2026-04-20"
 }
 ```
 
 El campo `nombre` es opcional y puede enviarse como `null`.
+El campo `fechaEntregaEstimada` tambien es opcional y, si se envia, debe usar formato `YYYY-MM-DD`.
 
 ## Postman
 

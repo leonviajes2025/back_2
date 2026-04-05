@@ -49,12 +49,14 @@ export function serializeContactoWhats(contactoWhats: {
   id: number;
   nombre: string | null;
   cotizacion: string;
+  fechaEntregaEstimada?: Date | null;
   fechaCreacion: Date;
 }) {
   return {
     id: contactoWhats.id,
     nombre: contactoWhats.nombre,
     cotizacion: contactoWhats.cotizacion,
+    fechaEntregaEstimada: contactoWhats.fechaEntregaEstimada?.toISOString().slice(0, 10) ?? null,
     fechaCreacion: contactoWhats.fechaCreacion.toISOString(),
   };
 }
