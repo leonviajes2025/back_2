@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS "contactos_email_key";

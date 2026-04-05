@@ -30,16 +30,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(serializeContacto(contacto), { status: 201 });
-  } catch (error: unknown) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "P2002"
-    ) {
-      return NextResponse.json({ message: "Ya existe un contacto con ese email." }, { status: 400 });
-    }
-
+  } catch {
     return NextResponse.json({ message: "No fue posible crear el contacto." }, { status: 400 });
   }
 }

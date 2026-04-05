@@ -36,39 +36,42 @@ async function upsertContactoWhats(data) {
   });
 }
 
-async function main() {
-  await prisma.contacto.upsert({
-    where: { email: "ana@example.com" },
-    update: {
-      nombre: "Ana Perez",
-      telefono: "+5215555555555",
-      aceptaPromociones: true,
-      pregunta: "Quiero conocer tiempos de entrega para un pedido grande.",
+async function ensureContacto(data) {
+  const existing = await prisma.contacto.findFirst({
+    where: {
+      nombre: data.nombre,
+      email: data.email,
+      telefono: data.telefono,
+      aceptaPromociones: data.aceptaPromociones,
+      pregunta: data.pregunta,
     },
-    create: {
-      nombre: "Ana Perez",
-      email: "ana@example.com",
-      telefono: "+5215555555555",
-      aceptaPromociones: true,
-      pregunta: "Quiero conocer tiempos de entrega para un pedido grande.",
-    },
+    select: { id: true },
   });
 
-  await prisma.contacto.upsert({
-    where: { email: "luis@example.com" },
-    update: {
-      nombre: "Luis Ramirez",
-      telefono: "+5215555555501",
-      aceptaPromociones: false,
-      pregunta: null,
-    },
-    create: {
-      nombre: "Luis Ramirez",
-      email: "luis@example.com",
-      telefono: "+5215555555501",
-      aceptaPromociones: false,
-      pregunta: null,
-    },
+  if (existing) {
+    return existing;
+  }
+
+  return prisma.contacto.create({
+    data,
+  });
+}
+
+async function main() {
+  await ensureContacto({
+    nombre: "Ana Perez",
+    email: "ana@example.com",
+    telefono: "+5215555555555",
+    aceptaPromociones: true,
+    pregunta: "Quiero conocer tiempos de entrega para un pedido grande.",
+  });
+
+  await ensureContacto({
+    nombre: "Luis Ramirez",
+    email: "luis@example.com",
+    telefono: "+5215555555501",
+    aceptaPromociones: false,
+    pregunta: null,
   });
 
   await upsertProducto({
