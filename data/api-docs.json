@@ -1,0 +1,345 @@
+{
+  "basePath": "/api",
+  "methodLegend": ["GET", "POST", "PUT", "DELETE"],
+  "postman": {
+    "info": {
+      "name": "back_2 API",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": "Coleccion generada desde data/api-docs.json para mantener sincronizados front y Postman."
+    },
+    "variables": [
+      { "key": "baseUrl", "value": "http://127.0.0.1:3000" },
+      { "key": "contactoEmailDuplicado", "value": "marta.duplicado.postman@example.com" },
+      { "key": "productoId", "value": "1" },
+      { "key": "pedidoId", "value": "1" },
+      { "key": "usuarioAccesoId", "value": "1" },
+      { "key": "nombreUsuarioAccesoAdmin", "value": "admin" },
+      { "key": "contrasenaAccesoAdmin", "value": "Admin123" },
+      { "key": "nombreUsuarioAccesoNuevo", "value": "supervisor" },
+      { "key": "contrasenaAccesoNueva", "value": "Supervisor123" }
+    ]
+  },
+  "groups": [
+    {
+      "name": "contactos",
+      "postmanName": "Contactos",
+      "route": "/api/contactos",
+      "summary": "Alta y consulta de contactos generales enviados desde formularios.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/contactos",
+          "description": "Lista todos los contactos ordenados por fecha de creacion descendente.",
+          "operation": "Listar contactos",
+          "request": "Sin body. Consulta simple ordenada por fechaCreacion desc.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/contactos",
+          "description": "Crea un contacto nuevo validando los datos recibidos.",
+          "operation": "Crear contacto",
+          "request": "Body JSON con datos del contacto. Valida formato antes de insertar.",
+          "responses": ["201 Created", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "nombre", "type": "string", "required": true, "description": "Nombre completo del contacto." },
+            { "name": "email", "type": "string", "required": true, "description": "Correo valido. Se normaliza a minusculas." },
+            { "name": "telefono", "type": "string", "required": true, "description": "Telefono de contacto." },
+            { "name": "aceptaPromociones", "type": "boolean", "required": true, "description": "Acepta true/false o equivalentes parseables." },
+            { "name": "pregunta", "type": "string | null", "required": false, "description": "Consulta adicional. Puede enviarse null." }
+          ],
+          "exampleBody": "{\n  \"nombre\": \"Marta Soto\",\n  \"email\": \"marta.duplicado.postman@example.com\",\n  \"telefono\": \"+5215555555510\",\n  \"aceptaPromociones\": true,\n  \"pregunta\": \"Tienen disponibilidad inmediata?\"\n}",
+          "postmanBody": "{\n  \"nombre\": \"Marta Soto\",\n  \"email\": \"{{contactoEmailDuplicado}}\",\n  \"telefono\": \"+5215555555510\",\n  \"aceptaPromociones\": true,\n  \"pregunta\": \"Tienen disponibilidad inmediata?\"\n}",
+          "notes": "Devuelve mensaje de error si el body no cumple la validacion."
+        }
+      ]
+    },
+    {
+      "name": "productos",
+      "postmanName": "Productos",
+      "route": "/api/productos",
+      "summary": "Catalogo de productos con variantes para filtrar, crear, actualizar y desactivar.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/productos",
+          "description": "Lista todos los productos registrados, sin filtrar por estado o visibilidad.",
+          "operation": "Listar productos",
+          "request": "Sin body. Devuelve catalogo completo.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/productos",
+          "description": "Crea un producto nuevo despues de validar nombre, categoria, precios y banderas.",
+          "operation": "Crear producto",
+          "request": "Body JSON con datos del producto. Requiere validacion previa.",
+          "responses": ["201 Created", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "nombre", "type": "string", "required": true, "description": "Nombre comercial del producto." },
+            { "name": "categoria", "type": "string", "required": true, "description": "Categoria visible o interna del producto." },
+            { "name": "descripcion", "type": "string", "required": true, "description": "Descripcion del producto." },
+            { "name": "precio", "type": "string | number", "required": true, "description": "Valor numerico con hasta 2 decimales." },
+            { "name": "imagenUrl", "type": "string", "required": true, "description": "URL de la imagen principal." },
+            { "name": "activo", "type": "boolean", "required": false, "description": "Si no se envia, toma true por defecto." },
+            { "name": "visible", "type": "boolean", "required": false, "description": "Si no se envia, toma true por defecto." }
+          ],
+          "exampleBody": "{\n  \"nombre\": \"Producto Postman\",\n  \"categoria\": \"Accesorios\",\n  \"descripcion\": \"Creado desde la coleccion de Postman\",\n  \"precio\": \"220.00\",\n  \"imagenUrl\": \"https://example.com/postman.jpg\",\n  \"activo\": true,\n  \"visible\": true\n}",
+          "notes": "activo y visible son opcionales en create; si no llegan, ambos quedan en true.",
+          "postmanTestScript": [
+            "const response = pm.response.json();",
+            "if (response.id) {",
+            "  pm.collectionVariables.set('productoId', String(response.id));",
+            "}"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/productos/activos",
+          "description": "Devuelve solo productos activos y visibles para consumo publico.",
+          "operation": "Listar productos activos",
+          "request": "Sin body. Filtra por activo=true y visible=true.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/productos/visibles",
+          "description": "Devuelve productos visibles, esten o no activos.",
+          "operation": "Listar productos visibles",
+          "request": "Sin body. Filtra por visible=true.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/productos/[id]",
+          "postmanPath": "/api/productos/{{productoId}}",
+          "description": "Actualiza un producto existente usando un id entero positivo.",
+          "operation": "Actualizar producto",
+          "request": "Body JSON parcial o completo. Requiere id entero positivo en ruta.",
+          "responses": ["200 OK", "400 Bad Request"],
+          "routeParams": [
+            { "name": "id", "type": "integer", "required": true, "description": "Identificador del producto. Debe ser entero positivo." }
+          ],
+          "bodyFields": [
+            { "name": "nombre", "type": "string", "required": false, "description": "Nuevo nombre del producto." },
+            { "name": "categoria", "type": "string", "required": false, "description": "Nueva categoria." },
+            { "name": "descripcion", "type": "string", "required": false, "description": "Nueva descripcion." },
+            { "name": "precio", "type": "string | number", "required": false, "description": "Nuevo precio con hasta 2 decimales." },
+            { "name": "imagenUrl", "type": "string", "required": false, "description": "Nueva URL de imagen." },
+            { "name": "activo", "type": "boolean", "required": false, "description": "Permite activar o desactivar explicitamente." },
+            { "name": "visible", "type": "boolean", "required": false, "description": "Controla la visibilidad publica." }
+          ],
+          "exampleBody": "{\n  \"nombre\": \"Producto Actualizado Postman\",\n  \"categoria\": \"Hogar\",\n  \"precio\": \"180.00\",\n  \"visible\": false\n}",
+          "notes": "El endpoint valida el parametro id antes de intentar actualizar. Debes enviar al menos un campo."
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/productos/[id]",
+          "postmanPath": "/api/productos/{{productoId}}",
+          "description": "Realiza baja logica del producto cambiando activo a false.",
+          "operation": "Desactivar producto",
+          "request": "Sin body. Requiere id entero positivo en ruta.",
+          "responses": ["200 OK", "400 Bad Request"],
+          "routeParams": [
+            { "name": "id", "type": "integer", "required": true, "description": "Identificador del producto. Debe ser entero positivo." }
+          ],
+          "notes": "No elimina el registro fisicamente; actualiza activo=false."
+        }
+      ]
+    },
+    {
+      "name": "contactos-whats",
+      "postmanName": "Contactos WhatsApp",
+      "route": "/api/contactos-whats",
+      "summary": "Solicitudes de cotizacion iniciadas desde WhatsApp.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/contactos-whats",
+          "description": "Lista las solicitudes de WhatsApp mas recientes primero.",
+          "operation": "Listar solicitudes WhatsApp",
+          "request": "Sin body. Ordena por fechaCreacion desc.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/contactos-whats",
+          "description": "Registra una nueva solicitud con nombre opcional, estatus y fecha estimada opcional.",
+          "operation": "Crear solicitud WhatsApp",
+          "request": "Body JSON con datos del pedido. Acepta nombre y fecha estimada opcionales.",
+          "responses": ["201 Created", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "nombre", "type": "string | null", "required": false, "description": "Nombre del cliente. Puede ser null." },
+            { "name": "cotizacion", "type": "string", "required": true, "description": "Texto principal de la solicitud." },
+            { "name": "clienteEstatus", "type": "string", "required": false, "description": "Si se omite, toma pendiente por defecto." },
+            { "name": "fechaEntregaEstimada", "type": "string | null", "required": false, "description": "Fecha en formato YYYY-MM-DD o null." }
+          ],
+          "exampleBody": "{\n  \"nombre\": null,\n  \"cotizacion\": \"Necesito una cotizacion para 20 piezas del Producto Base\",\n  \"clienteEstatus\": \"pendiente\",\n  \"fechaEntregaEstimada\": \"2026-04-20\"\n}",
+          "postmanTestScript": [
+            "const response = pm.response.json();",
+            "if (response.id) {",
+            "  pm.collectionVariables.set('pedidoId', String(response.id));",
+            "}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cotizacion-detalle",
+      "postmanName": "Cotizacion Detalle",
+      "route": "/api/cotizacion-detalle",
+      "summary": "Detalle de piezas y productos vinculados a una cotizacion de WhatsApp.",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/cotizacion-detalle",
+          "description": "Crea un detalle de cotizacion validando que existan el pedido y el producto activo.",
+          "operation": "Crear detalle de cotizacion",
+          "request": "Body JSON con idPedido, idProducto y numeroPiezas.",
+          "responses": ["201 Created", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "idPedido", "type": "integer", "required": true, "description": "Id del registro de contactoWhats." },
+            { "name": "idProducto", "type": "integer", "required": true, "description": "Id del producto activo relacionado." },
+            { "name": "numeroPiezas", "type": "integer", "required": true, "description": "Cantidad de piezas. Debe ser entero positivo." }
+          ],
+          "exampleBody": "{\n  \"idPedido\": 1,\n  \"idProducto\": 1,\n  \"numeroPiezas\": 20\n}",
+          "postmanBody": "{\n  \"idPedido\": {{pedidoId}},\n  \"idProducto\": {{productoId}},\n  \"numeroPiezas\": 20\n}",
+          "notes": "Comprueba que exista el contactoWhats y que el producto este activo."
+        }
+      ]
+    },
+    {
+      "name": "usuarios-acceso",
+      "postmanName": "Acceso Administrativo",
+      "route": "/api/usuarios-acceso",
+      "summary": "Gestion de usuarios administrativos y validacion de permisos.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/usuarios-acceso",
+          "description": "Lista usuarios de acceso administrativo ordenados por creacion.",
+          "operation": "Listar usuarios de acceso",
+          "request": "Sin body. Consulta usuarios administrativos.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/usuarios-acceso",
+          "description": "Crea un usuario administrativo y guarda la contrasena hasheada.",
+          "operation": "Crear usuario de acceso",
+          "request": "Body JSON con nombreUsuario, contrasena, nombreCompleto y permiso.",
+          "responses": ["201 Created", "400 Bad Request", "409 Conflict"],
+          "bodyFields": [
+            { "name": "nombreUsuario", "type": "string", "required": true, "description": "Minimo 3 caracteres. Se normaliza a minusculas." },
+            { "name": "contrasena", "type": "string", "required": true, "description": "Minimo 6 caracteres." },
+            { "name": "nombreCompleto", "type": "string", "required": true, "description": "Nombre descriptivo del usuario." },
+            { "name": "tienePermiso", "type": "boolean", "required": true, "description": "Indica acceso a la pagina administrativa." }
+          ],
+          "exampleBody": "{\n  \"nombreUsuario\": \"supervisor\",\n  \"contrasena\": \"Supervisor123\",\n  \"nombreCompleto\": \"Supervisor Comercial\",\n  \"tienePermiso\": true\n}",
+          "postmanBody": "{\n  \"nombreUsuario\": \"{{nombreUsuarioAccesoNuevo}}\",\n  \"contrasena\": \"{{contrasenaAccesoNueva}}\",\n  \"nombreCompleto\": \"Supervisor Comercial\",\n  \"tienePermiso\": true\n}",
+          "postmanTestScript": [
+            "const response = pm.response.json();",
+            "if (response.id) {",
+            "  pm.collectionVariables.set('usuarioAccesoId', String(response.id));",
+            "}",
+            "if (response.nombreUsuario) {",
+            "  pm.collectionVariables.set('nombreUsuarioAccesoNuevo', response.nombreUsuario);",
+            "}"
+          ],
+          "notes": "Si el nombreUsuario ya existe responde conflicto por restriccion unica."
+        },
+        {
+          "method": "PUT",
+          "path": "/api/usuarios-acceso/[id]",
+          "postmanPath": "/api/usuarios-acceso/{{usuarioAccesoId}}",
+          "description": "Actualiza usuario, permisos y contrasena de forma parcial usando id.",
+          "operation": "Actualizar usuario de acceso",
+          "request": "Body JSON parcial. Requiere id entero positivo en ruta.",
+          "responses": ["200 OK", "400 Bad Request", "404 Not Found", "409 Conflict"],
+          "routeParams": [
+            { "name": "id", "type": "integer", "required": true, "description": "Identificador del usuario. Debe ser entero positivo." }
+          ],
+          "bodyFields": [
+            { "name": "nombreUsuario", "type": "string", "required": false, "description": "Minimo 3 caracteres. Se normaliza a minusculas." },
+            { "name": "contrasena", "type": "string", "required": false, "description": "Minimo 6 caracteres." },
+            { "name": "nombreCompleto", "type": "string", "required": false, "description": "Nuevo nombre descriptivo del usuario." },
+            { "name": "tienePermiso", "type": "boolean", "required": false, "description": "Actualiza el permiso administrativo." }
+          ],
+          "exampleBody": "{\n  \"nombreCompleto\": \"Supervisor Ventas\",\n  \"tienePermiso\": false,\n  \"contrasena\": \"NuevaClave123\"\n}",
+          "notes": "Todos los campos son opcionales, pero debes enviar al menos uno."
+        },
+        {
+          "method": "POST",
+          "path": "/api/usuarios-acceso/validar",
+          "description": "Valida credenciales y confirma si el usuario tiene permiso administrativo.",
+          "operation": "Validar acceso administrativo",
+          "request": "Body JSON con nombreUsuario y contrasena.",
+          "responses": ["200 OK", "401 Unauthorized", "403 Forbidden", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "nombreUsuario", "type": "string", "required": true, "description": "Minimo 3 caracteres." },
+            { "name": "contrasena", "type": "string", "required": true, "description": "Minimo 6 caracteres." }
+          ],
+          "exampleBody": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"Admin123\"\n}",
+          "postmanBody": "{\n  \"nombreUsuario\": \"{{nombreUsuarioAccesoAdmin}}\",\n  \"contrasena\": \"{{contrasenaAccesoAdmin}}\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "inicios-sesion",
+      "postmanName": "Inicios de Sesion",
+      "route": "/api/inicios-sesion",
+      "summary": "Registro de accesos administrativos exitosos.",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/inicios-sesion",
+          "description": "Valida credenciales, verifica permisos y registra el inicio de sesion.",
+          "operation": "Registrar inicio de sesion",
+          "request": "Body JSON con nombreUsuario y contrasena.",
+          "responses": ["201 Created", "401 Unauthorized", "403 Forbidden", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "nombreUsuario", "type": "string", "required": true, "description": "Minimo 3 caracteres." },
+            { "name": "contrasena", "type": "string", "required": true, "description": "Minimo 6 caracteres." }
+          ],
+          "exampleBody": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"Admin123\"\n}",
+          "postmanBody": "{\n  \"nombreUsuario\": \"{{nombreUsuarioAccesoAdmin}}\",\n  \"contrasena\": \"{{contrasenaAccesoAdmin}}\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "logs-errores",
+      "postmanName": "Logs de Errores",
+      "route": "/api/logs-errores",
+      "summary": "Consulta y registro de errores provenientes de dominios externos.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/logs-errores",
+          "description": "Lista errores ordenados por fecha de ocurrencia y fecha de creacion.",
+          "operation": "Listar logs de errores",
+          "request": "Sin body. Ordena por fechaOcurrencia y fechaCreacion descendentes.",
+          "responses": ["200 OK"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/logs-errores",
+          "description": "Registra un log de error con dominio, origen, metodo, codigo y contexto.",
+          "operation": "Crear log de error",
+          "request": "Body JSON con datos del error y su contexto.",
+          "responses": ["201 Created", "400 Bad Request"],
+          "bodyFields": [
+            { "name": "dominio", "type": "string", "required": true, "description": "Sistema o dominio que origino el error." },
+            { "name": "origen", "type": "string | null", "required": false, "description": "Modulo o pantalla de origen." },
+            { "name": "metodo", "type": "string | null", "required": false, "description": "Metodo HTTP o accion. Se normaliza a mayusculas." },
+            { "name": "codigo", "type": "string | null", "required": false, "description": "Codigo interno del error." },
+            { "name": "mensaje", "type": "string", "required": true, "description": "Mensaje principal del error." },
+            { "name": "detalle", "type": "string | null", "required": false, "description": "Detalle ampliado del error." },
+            { "name": "contexto", "type": "string | object | null", "required": false, "description": "Puede enviarse como JSON serializable o texto." },
+            { "name": "fechaOcurrencia", "type": "string | null", "required": false, "description": "Fecha-hora valida. Si se omite, usa la fecha actual." }
+          ],
+          "exampleBody": "{\n  \"dominio\": \"frontend-web\",\n  \"origen\": \"checkout\",\n  \"metodo\": \"POST\",\n  \"codigo\": \"PAYMENT_TIMEOUT\",\n  \"mensaje\": \"No fue posible completar el cobro.\",\n  \"detalle\": \"La pasarela no respondio dentro del tiempo esperado.\",\n  \"contexto\": {\n    \"pedidoId\": 123,\n    \"traceId\": \"req-01HXYZ\"\n  },\n  \"fechaOcurrencia\": \"2026-04-05T18:45:12.000Z\"\n}"
+        }
+      ]
+    }
+  ]
+}
