@@ -37,7 +37,10 @@ async function upsertContactoWhats(data) {
   });
 
   if (existing) {
-    return existing;
+    return prisma.contactoWhats.update({
+      where: { id: existing.id },
+      data,
+    });
   }
 
   return prisma.contactoWhats.create({
@@ -132,6 +135,7 @@ async function main() {
   await upsertContactoWhats({
     nombre: "Ana Perez",
     cotizacion: "Necesito una cotizacion para 50 piezas del Producto Base.",
+    clienteEstatus: "pendiente",
   });
 
   await upsertUsuarioAcceso({

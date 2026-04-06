@@ -50,6 +50,7 @@ export function serializeContactoWhats(contactoWhats: {
   id: number;
   nombre: string | null;
   cotizacion: string;
+  clienteEstatus: string;
   fechaEntregaEstimada?: Date | null;
   fechaCreacion: Date;
 }) {
@@ -57,6 +58,7 @@ export function serializeContactoWhats(contactoWhats: {
     id: contactoWhats.id,
     nombre: contactoWhats.nombre,
     cotizacion: contactoWhats.cotizacion,
+    clienteEstatus: contactoWhats.clienteEstatus,
     fechaEntregaEstimada: contactoWhats.fechaEntregaEstimada?.toISOString().slice(0, 10) ?? null,
     fechaCreacion: contactoWhats.fechaCreacion.toISOString(),
   };

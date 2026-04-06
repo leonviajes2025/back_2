@@ -120,11 +120,13 @@ Ejemplo de payload para crear una solicitud de WhatsApp:
 {
   "nombre": null,
   "cotizacion": "Necesito una cotizacion para 10 piezas del Producto Base",
+  "clienteEstatus": "pendiente",
   "fechaEntregaEstimada": "2026-04-20"
 }
 ```
 
 El campo `nombre` es opcional y puede enviarse como `null`.
+El campo `clienteEstatus` recibe texto, no admite `null` y si no se envia la API usa `pendiente`.
 El campo `fechaEntregaEstimada` tambien es opcional y, si se envia, debe usar formato `YYYY-MM-DD`.
 
 ### Acceso administrativo

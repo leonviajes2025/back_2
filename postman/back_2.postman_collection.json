@@ -206,7 +206,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": null,\n  \"cotizacion\": \"Necesito una cotizacion para 20 piezas del Producto Base\",\n  \"fechaEntregaEstimada\": \"2026-04-20\"\n}"
+              "raw": "{\n  \"nombre\": null,\n  \"cotizacion\": \"Necesito una cotizacion para 20 piezas del Producto Base\",\n  \"clienteEstatus\": \"pendiente\",\n  \"fechaEntregaEstimada\": \"2026-04-20\"\n}"
             },
             "url": "{{baseUrl}}/api/contactos-whats"
           }

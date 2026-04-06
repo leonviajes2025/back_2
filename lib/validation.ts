@@ -33,6 +33,7 @@ export type ProductoUpdateInput = {
 export type ContactoWhatsInput = {
   nombre: string | null;
   cotizacion: string;
+  clienteEstatus: string;
   fechaEntregaEstimada: Date | null;
 };
 
@@ -382,6 +383,7 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
 
   const body = payload as Record<string, unknown>;
   let nombre: string | null = null;
+  let clienteEstatus = "pendiente";
   let fechaEntregaEstimada: Date | null = null;
 
   if ("nombre" in body && body.nombre !== null && body.nombre !== undefined) {
@@ -394,6 +396,14 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
 
   if (!isNonEmptyString(body.cotizacion)) {
     return { success: false, message: "La cotizacion es obligatoria." };
+  }
+
+  if ("clienteEstatus" in body) {
+    if (!isNonEmptyString(body.clienteEstatus)) {
+      return { success: false, message: "clienteEstatus debe ser un texto no vacio." };
+    }
+
+    clienteEstatus = body.clienteEstatus.trim();
   }
 
   if (
@@ -413,6 +423,7 @@ export function validateContactoWhatsInput(payload: unknown): ValidationResult<C
     data: {
       nombre,
       cotizacion: body.cotizacion.trim(),
+      clienteEstatus,
       fechaEntregaEstimada,
     },
   };

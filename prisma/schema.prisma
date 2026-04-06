@@ -41,6 +41,7 @@ model ContactoWhats {
   id            Int      @id @default(autoincrement())
   nombre        String?
   cotizacion    String
+  clienteEstatus String  @default("pendiente") @db.VarChar(100)
   fechaEntregaEstimada DateTime? @db.Date
   fechaCreacion DateTime @default(now())
   detalles      CotizacionDetalle[]
