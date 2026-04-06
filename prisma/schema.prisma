@@ -59,3 +59,26 @@ model CotizacionDetalle {
   @@index([idProducto])
   @@map("cotizacion_detalle")
 }
+
+model UsuarioAcceso {
+  id                 Int            @id @default(autoincrement())
+  nombreUsuario      String         @unique
+  contrasenaHash     String
+  nombreCompleto     String
+  tienePermiso       Boolean        @default(true)
+  fechaCreacion      DateTime       @default(now())
+  fechaActualizacion DateTime       @updatedAt
+  iniciosSesion      InicioSesion[]
+
+  @@map("usuarios_acceso")
+}
+
+model InicioSesion {
+  id            Int           @id @default(autoincrement())
+  idUsuario     Int
+  fechaCreacion DateTime      @default(now())
+  usuario       UsuarioAcceso @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+
+  @@index([idUsuario])
+  @@map("inicios_sesion")
+}

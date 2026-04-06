@@ -74,3 +74,26 @@ export function serializeCotizacionDetalle(cotizacionDetalle: {
     numeroPiezas: cotizacionDetalle.numeroPiezas,
   };
 }
+
+export function serializeUsuarioAcceso(usuarioAcceso: {
+  id: number;
+  nombreUsuario: string;
+  nombreCompleto: string;
+  tienePermiso: boolean;
+  fechaCreacion: Date;
+  fechaActualizacion: Date;
+}) {
+  return serializeDates(usuarioAcceso);
+}
+
+export function serializeInicioSesion(inicioSesion: {
+  id: number;
+  idUsuario: number;
+  fechaCreacion: Date;
+}) {
+  return {
+    id: inicioSesion.id,
+    idUsuario: inicioSesion.idUsuario,
+    fechaCreacion: inicioSesion.fechaCreacion.toISOString(),
+  };
+}

@@ -127,6 +127,57 @@ Ejemplo de payload para crear una solicitud de WhatsApp:
 El campo `nombre` es opcional y puede enviarse como `null`.
 El campo `fechaEntregaEstimada` tambien es opcional y, si se envia, debe usar formato `YYYY-MM-DD`.
 
+### Acceso administrativo
+
+- GET `/api/usuarios-acceso`
+- POST `/api/usuarios-acceso`
+- PUT `/api/usuarios-acceso/:id`
+- POST `/api/usuarios-acceso/validar`
+- POST `/api/inicios-sesion`
+
+Ambos endpoints reciben credenciales en JSON:
+
+```json
+{
+  "nombreUsuario": "admin",
+  "contrasena": "Admin123"
+}
+```
+
+`/api/usuarios-acceso/validar` confirma si las credenciales son correctas y si el usuario tiene permiso para acceder al panel administrativo.
+
+`/api/inicios-sesion` valida credenciales, verifica permiso y registra el inicio de sesion en la tabla `inicios_sesion`.
+
+`\/api/usuarios-acceso` permite listar usuarios creados y registrar nuevos usuarios con permiso administrativo o sin el.
+
+Ejemplo de payload para crear usuario de acceso:
+
+```json
+{
+  "nombreUsuario": "supervisor",
+  "contrasena": "Supervisor123",
+  "nombreCompleto": "Supervisor Comercial",
+  "tienePermiso": true
+}
+```
+
+Ejemplo de payload para actualizar usuario de acceso:
+
+```json
+{
+  "nombreCompleto": "Supervisor Ventas",
+  "tienePermiso": false,
+  "contrasena": "NuevaClave123"
+}
+```
+
+El seed crea un usuario administrativo inicial:
+
+```text
+nombreUsuario: admin
+contrasena: Admin123
+```
+
 ## Postman
 
 Se incluye una coleccion lista para importar en [postman/back_2.postman_collection.json](postman/back_2.postman_collection.json).

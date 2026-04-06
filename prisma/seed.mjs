@@ -1,6 +1,15 @@
+import { randomBytes, scryptSync } from "node:crypto";
+
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+function generarHashContrasena(contrasena) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(contrasena, salt, 64).toString("hex");
+
+  return `${salt}:${hash}`;
+}
 
 async function upsertProducto(data) {
   const existing = await prisma.producto.findFirst({
@@ -57,6 +66,22 @@ async function ensureContacto(data) {
   });
 }
 
+async function upsertUsuarioAcceso(data) {
+  const existing = await prisma.usuarioAcceso.findUnique({
+    where: { nombreUsuario: data.nombreUsuario },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return prisma.usuarioAcceso.update({
+      where: { id: existing.id },
+      data,
+    });
+  }
+
+  return prisma.usuarioAcceso.create({ data });
+}
+
 async function main() {
   await ensureContacto({
     nombre: "Ana Perez",
@@ -104,6 +129,13 @@ async function main() {
   await upsertContactoWhats({
     nombre: "Ana Perez",
     cotizacion: "Necesito una cotizacion para 50 piezas del Producto Base.",
+  });
+
+  await upsertUsuarioAcceso({
+    nombreUsuario: "admin",
+    contrasenaHash: generarHashContrasena("Admin123"),
+    nombreCompleto: "Administrador General",
+    tienePermiso: true,
   });
 
   console.log("Seed completado correctamente.");

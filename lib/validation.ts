@@ -40,6 +40,25 @@ export type CotizacionDetalleCreateInput = {
   numeroPiezas: number;
 };
 
+export type CredencialesAccesoInput = {
+  nombreUsuario: string;
+  contrasena: string;
+};
+
+export type UsuarioAccesoCreateInput = {
+  nombreUsuario: string;
+  contrasena: string;
+  nombreCompleto: string;
+  tienePermiso: boolean;
+};
+
+export type UsuarioAccesoUpdateInput = {
+  nombreUsuario?: string;
+  contrasena?: string;
+  nombreCompleto?: string;
+  tienePermiso?: boolean;
+};
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isNonEmptyString(value: unknown): value is string {
@@ -350,4 +369,142 @@ export function validateCotizacionDetalleCreateInput(
       numeroPiezas,
     },
   };
+}
+
+export function validateCredencialesAccesoInput(
+  payload: unknown,
+): ValidationResult<CredencialesAccesoInput> {
+  if (!payload || typeof payload !== "object") {
+    return { success: false, message: "El cuerpo de la solicitud debe ser un objeto JSON." };
+  }
+
+  const body = payload as Record<string, unknown>;
+
+  if (!isNonEmptyString(body.nombreUsuario)) {
+    return { success: false, message: "El nombreUsuario es obligatorio." };
+  }
+
+  if (body.nombreUsuario.trim().length < 3) {
+    return { success: false, message: "El nombreUsuario debe tener al menos 3 caracteres." };
+  }
+
+  if (!isNonEmptyString(body.contrasena)) {
+    return { success: false, message: "La contrasena es obligatoria." };
+  }
+
+  if (body.contrasena.trim().length < 6) {
+    return { success: false, message: "La contrasena debe tener al menos 6 caracteres." };
+  }
+
+  return {
+    success: true,
+    data: {
+      nombreUsuario: body.nombreUsuario.trim().toLowerCase(),
+      contrasena: body.contrasena.trim(),
+    },
+  };
+}
+
+export function validateUsuarioAccesoCreateInput(
+  payload: unknown,
+): ValidationResult<UsuarioAccesoCreateInput> {
+  if (!payload || typeof payload !== "object") {
+    return { success: false, message: "El cuerpo de la solicitud debe ser un objeto JSON." };
+  }
+
+  const body = payload as Record<string, unknown>;
+  const tienePermiso = parseBoolean(body.tienePermiso);
+
+  if (!isNonEmptyString(body.nombreUsuario)) {
+    return { success: false, message: "El nombreUsuario es obligatorio." };
+  }
+
+  if (body.nombreUsuario.trim().length < 3) {
+    return { success: false, message: "El nombreUsuario debe tener al menos 3 caracteres." };
+  }
+
+  if (!isNonEmptyString(body.nombreCompleto)) {
+    return { success: false, message: "El nombreCompleto es obligatorio." };
+  }
+
+  if (!isNonEmptyString(body.contrasena)) {
+    return { success: false, message: "La contrasena es obligatoria." };
+  }
+
+  if (body.contrasena.trim().length < 6) {
+    return { success: false, message: "La contrasena debe tener al menos 6 caracteres." };
+  }
+
+  if (tienePermiso === null) {
+    return { success: false, message: "tienePermiso debe ser un valor booleano." };
+  }
+
+  return {
+    success: true,
+    data: {
+      nombreUsuario: body.nombreUsuario.trim().toLowerCase(),
+      contrasena: body.contrasena.trim(),
+      nombreCompleto: body.nombreCompleto.trim(),
+      tienePermiso,
+    },
+  };
+}
+
+export function validateUsuarioAccesoUpdateInput(
+  payload: unknown,
+): ValidationResult<UsuarioAccesoUpdateInput> {
+  if (!payload || typeof payload !== "object") {
+    return { success: false, message: "El cuerpo de la solicitud debe ser un objeto JSON." };
+  }
+
+  const body = payload as Record<string, unknown>;
+  const data: UsuarioAccesoUpdateInput = {};
+
+  if ("nombreUsuario" in body) {
+    if (!isNonEmptyString(body.nombreUsuario)) {
+      return { success: false, message: "El nombreUsuario debe ser un texto no vacio." };
+    }
+
+    if (body.nombreUsuario.trim().length < 3) {
+      return { success: false, message: "El nombreUsuario debe tener al menos 3 caracteres." };
+    }
+
+    data.nombreUsuario = body.nombreUsuario.trim().toLowerCase();
+  }
+
+  if ("nombreCompleto" in body) {
+    if (!isNonEmptyString(body.nombreCompleto)) {
+      return { success: false, message: "El nombreCompleto debe ser un texto no vacio." };
+    }
+
+    data.nombreCompleto = body.nombreCompleto.trim();
+  }
+
+  if ("contrasena" in body) {
+    if (!isNonEmptyString(body.contrasena)) {
+      return { success: false, message: "La contrasena debe ser un texto no vacio." };
+    }
+
+    if (body.contrasena.trim().length < 6) {
+      return { success: false, message: "La contrasena debe tener al menos 6 caracteres." };
+    }
+
+    data.contrasena = body.contrasena.trim();
+  }
+
+  if ("tienePermiso" in body) {
+    const tienePermiso = parseBoolean(body.tienePermiso);
+
+    if (tienePermiso === null) {
+      return { success: false, message: "tienePermiso debe ser un valor booleano." };
+    }
+
+    data.tienePermiso = tienePermiso;
+  }
+
+  if (Object.keys(data).length === 0) {
+    return { success: false, message: "Debes enviar al menos un campo para actualizar." };
+  }
+
+  return { success: true, data };
 }
