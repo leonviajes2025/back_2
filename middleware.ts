@@ -116,14 +116,16 @@ export async function middleware(req: NextRequest) {
     return setCors(res);
   }
 
-  const payload = await verifyJwtEdge(token, secret);
+    const payload = await verifyJwtEdge(token, secret);
   if (!payload || !payload.tienePermiso) {
     const res = new NextResponse(JSON.stringify({ message: "No autorizado" }), { status: 401, headers: { "content-type": "application/json" } });
     return setCors(res);
   }
 
-  // usuario autorizado
-  return NextResponse.next();
+  // usuario autorizado — aplicar CORS también
+  const resp = NextResponse.next();
+  return setCors(resp);
+  
 }
 
 export const config = {
