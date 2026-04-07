@@ -222,7 +222,9 @@
           "operation": "Registrar clic WhatsApp",
           "request": "Sin body obligatorio. Obtiene IP, dispositivo, navegador y fechaClick desde la peticion actual.",
           "responses": ["201 Created"],
-          "notes": "La IP se toma de headers proxy comunes; dispositivo y navegador se derivan del user-agent."
+          "exampleBody": "{}",
+          "postmanBody": "{}",
+          "notes": "La IP se toma de headers proxy comunes; dispositivo y navegador se derivan del user-agent. En Postman puedes simularlo añadiendo los headers 'x-forwarded-for' y 'user-agent'."
         }
       ]
     },

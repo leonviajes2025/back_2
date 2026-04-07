@@ -227,7 +227,17 @@
           "name": "POST Registrar clic WhatsApp",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/api/boton-whats"
+            "url": "{{baseUrl}}/api/boton-whats",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
           }
         }
       ]

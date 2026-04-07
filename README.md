@@ -226,7 +226,11 @@ Registro de clics del boton de mandar mensaje por WhatsApp.
   - Funcion: Registra un clic del boton de WhatsApp a partir de los headers de la peticion.
   - Request: Sin body obligatorio. Obtiene IP, dispositivo, navegador y fechaClick desde la peticion actual.
   - Responses: 201 Created
-  - Notas: La IP se toma de headers proxy comunes; dispositivo y navegador se derivan del user-agent.
+  - Ejemplo JSON:
+```json
+{}
+```
+  - Notas: La IP se toma de headers proxy comunes; dispositivo y navegador se derivan del user-agent. En Postman puedes simularlo añadiendo los headers 'x-forwarded-for' y 'user-agent'.
 
 ### Cotizacion Detalle
 
