@@ -24,6 +24,52 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/postgres"
 ```
 
+### Seguridad (JWT)
+
+La API ahora usa JSON Web Tokens (JWT) para proteger rutas administrativas. Añade `JWT_SECRET` a tu fichero de entorno (`.env`) o en las variables de entorno de Vercel.
+
+Usa `.env.example` como plantilla:
+
+```env
+JWT_SECRET="cambia_esto_por_una_clave_larga_y_secreTA"
+```
+
+Flujo básico para obtener y usar el token:
+
+- 1) Solicita token (login/validación):
+
+```bash
+curl -X POST "http://localhost:3000/api/usuarios-acceso/validar" \
+  -H "Content-Type: application/json" \
+  -d '{"nombreUsuario":"tuUsuario","contrasena":"tuContrasena"}'
+```
+
+Respuesta esperada (200 cuando autorizado):
+
+```json
+{
+  "autorizado": true,
+  "tienePermiso": true,
+  "message": "El usuario tiene permiso para acceder a la pagina administrativa.",
+  "usuario": { /* datos serializados */ },
+  "token": "<JWT_AQUI>"
+}
+```
+
+- 2) Llama a un endpoint protegido con el header `Authorization: Bearer <token>`:
+
+```bash
+curl "http://localhost:3000/api/contactos" \
+  -H "Authorization: Bearer <JWT_AQUI>"
+```
+
+Si el token falta, es inválido o el usuario no tiene `tienePermiso=true`, la API responderá `401 Unauthorized` o `403 Forbidden` según corresponda.
+
+Notas:
+- `POST /api/usuarios-acceso` (creación de usuarios) y `POST /api/usuarios-acceso/validar` (login) permanecen públicas.
+- Asegúrate de usar una `JWT_SECRET` larga y distinta entre entornos. En Vercel, configúrala en Project Settings → Environment Variables.
+- Si quieres ajustar rutas protegidas, edita `middleware.ts` en la raíz del proyecto.
+
 ## Prisma
 
 ```bash
