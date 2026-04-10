@@ -1,4 +1,4 @@
-import supabase from "../../../../lib/supabaseClient";
+import getSupabase from "../../../../lib/supabaseClient";
 import { withApiAuth } from "@/lib/withApiAuth";
 
 export const runtime = "nodejs";
@@ -17,6 +17,7 @@ export const POST = withApiAuth(async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    const supabase = getSupabase();
     const { data, error } = await supabase.storage.from(bucket).upload(filePath, buffer, { upsert: true });
 
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });

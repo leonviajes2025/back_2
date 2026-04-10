@@ -1,4 +1,4 @@
-import supabase from "../../../../lib/supabaseClient";
+import getSupabase from "../../../../lib/supabaseClient";
 import { withApiAuth } from "@/lib/withApiAuth";
 
 export const runtime = "nodejs";
@@ -10,6 +10,7 @@ export const DELETE = withApiAuth(async function DELETE(req: Request) {
     if (!path) return new Response(JSON.stringify({ error: "Missing path" }), { status: 400 });
 
     const bucket = process.env.NG_APP_SUPABASE_BUCKET || "productos";
+    const supabase = getSupabase();
     const { data, error } = await supabase.storage.from(bucket).remove([path]);
 
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
