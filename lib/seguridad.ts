@@ -86,3 +86,67 @@ export function verificarTokenJWT(token: string) {
     return null;
   }
 }
+
+export async function requireApiKey(request: Request) {
+  const headerKey = request.headers.get("x-api-key") ?? null;
+
+  const authHeader = request.headers.get("authorization");
+  const bearerKey = authHeader && authHeader.toLowerCase().startsWith("bearer ")
+    ? authHeader.slice(7).trim()
+    : null;
+
+  const providedKey = headerKey ?? bearerKey;
+
+  const serverKey = process.env.PRIVATE_API_KEY ?? "";
+
+  if (!serverKey) {
+    console.error("PRIVATE_API_KEY no configurada en el entorno");
+    throw new Response("Server misconfiguration", { status: 500 });
+  }
+
+    try {
+      if (!providedKey) {
+        try {
+          const { prisma } = await import("@/lib/prisma");
+          prisma.logError.create({
+            data: {
+              dominio: "security",
+              origen: request.url ?? undefined,
+              metodo: request.method ?? undefined,
+              codigo: "UNAUTHORIZED",
+              mensaje: "Intento de acceso sin API key",
+              contexto: JSON.stringify(Object.fromEntries(request.headers.entries())),
+            },
+          }).catch(() => {});
+        } catch {}
+
+        throw new Response("Unauthorized", { status: 401 });
+      }
+
+      const providedBuffer = Buffer.from(providedKey);
+      const serverBuffer = Buffer.from(serverKey);
+
+      if (providedBuffer.length !== serverBuffer.length || !timingSafeEqual(providedBuffer, serverBuffer)) {
+        try {
+          const { prisma } = await import("@/lib/prisma");
+          prisma.logError.create({
+            data: {
+              dominio: "security",
+              origen: request.url ?? undefined,
+              metodo: request.method ?? undefined,
+              codigo: "UNAUTHORIZED",
+              mensaje: "API key inválida (timingSafeEqual)",
+              contexto: JSON.stringify(Object.fromEntries(request.headers.entries())),
+            },
+          }).catch(() => {});
+        } catch {}
+
+        throw new Response("Unauthorized", { status: 401 });
+      }
+
+      return true;
+    } catch (err) {
+      if (err instanceof Response) throw err;
+      throw new Response("Unauthorized", { status: 401 });
+    }
+}

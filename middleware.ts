@@ -81,7 +81,7 @@ export async function middleware(req: NextRequest) {
   const origin = req.headers.get("origin") || undefined;
 
   function setCors(resp: NextResponse) {
-    const ALLOWED_ORIGINS = ["https://admin.palomitasbee.com", "http://localhost:3000"];
+    const ALLOWED_ORIGINS = ["https://admin.palomitasbee.com", "http://localhost:4200"];
     if (!origin) return resp;
     if (!ALLOWED_ORIGINS.includes(origin)) return resp;
     resp.headers.set("Access-Control-Allow-Origin", origin);
