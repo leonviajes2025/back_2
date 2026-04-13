@@ -18,7 +18,6 @@ async function run() {
   const SUPABASE_URL = env.NG_APP_SUPABASE_URL;
   const SUPABASE_KEY = env.NG_APP_SUPABASE_SERVICE_ROLE_KEY;
   const BUCKET = env.NG_APP_SUPABASE_BUCKET || 'productos';
-  const PATH_PREFIX = env.NG_APP_SUPABASE_PRODUCT_IMAGES_PATH || 'productos';
 
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('Variables de supabase faltantes');
@@ -29,7 +28,7 @@ async function run() {
 
   const content = 'prueba de upload ' + Date.now();
   const filename = `test_${Date.now()}.txt`;
-  const filePath = `${PATH_PREFIX}/${filename}`;
+  const filePath = `/${filename}`;
 
   console.log('Subiendo a', filePath);
   const { data: upData, error: upErr } = await supabase.storage.from(BUCKET).upload(filePath, Buffer.from(content), { upsert: true });

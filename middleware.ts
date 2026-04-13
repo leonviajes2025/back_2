@@ -81,9 +81,32 @@ export async function middleware(req: NextRequest) {
   const origin = req.headers.get("origin") || undefined;
 
   function setCors(resp: NextResponse) {
-    const ALLOWED_ORIGINS = ["https://admin.palomitasbee.com", "http://localhost:4200"];
-    if (!origin) return resp;
-    if (!ALLOWED_ORIGINS.includes(origin)) return resp;
+    // Desarrollo: aceptar requests desde cualquier origen (útil para test local).
+    // Si hay `origin`, lo reflejamos para permitir credenciales desde navegadores.
+    if (process.env.NODE_ENV !== "production") {
+      if (origin) {
+        resp.headers.set("Access-Control-Allow-Origin", origin);
+        resp.headers.set("Vary", "Origin");
+        resp.headers.set("Access-Control-Allow-Credentials", "true");
+      } else {
+        resp.headers.set("Access-Control-Allow-Origin", "*");
+      }
+      resp.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+      resp.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization");
+      resp.headers.set("Access-Control-Max-Age", "86400");
+      return resp;
+    }
+
+    // Producción: leer orígenes permitidos desde la variable de entorno `ALLOWED_ORIGINS`
+    // Formato esperado: lista separada por comas, p.ej. "https://a.com,https://b.com"
+    const allowed = (process.env.ALLOWED_ORIGINS || "https://admin.palomitasbee.com")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (!origin) return resp; // solicitudes sin Origin (p.ej. curl) no reciben cabeceras CORS
+    if (!allowed.includes(origin)) return resp; // origen no permitido
+
     resp.headers.set("Access-Control-Allow-Origin", origin);
     resp.headers.set("Vary", "Origin");
     resp.headers.set("Access-Control-Allow-Credentials", "true");

@@ -96,16 +96,18 @@ export async function requireApiKey(request: Request) {
     : null;
 
   const providedKey = headerKey ?? bearerKey;
-
   const serverKey = process.env.PRIVATE_API_KEY ?? "";
 
-  if (!serverKey) {
+  // Si falta la key en producción es un error de configuración
+  if (!serverKey && process.env.NODE_ENV === "production") {
     console.error("PRIVATE_API_KEY no configurada en el entorno");
     throw new Response("Server misconfiguration", { status: 500 });
   }
 
-    try {
-      if (!providedKey) {
+  try {
+    // Si no se provee credencial
+    if (!providedKey) {
+      if (process.env.NODE_ENV === "production") {
         try {
           const { prisma } = await import("@/lib/prisma");
           prisma.logError.create({
@@ -123,30 +125,48 @@ export async function requireApiKey(request: Request) {
         throw new Response("Unauthorized", { status: 401 });
       }
 
-      const providedBuffer = Buffer.from(providedKey);
-      const serverBuffer = Buffer.from(serverKey);
-
-      if (providedBuffer.length !== serverBuffer.length || !timingSafeEqual(providedBuffer, serverBuffer)) {
-        try {
-          const { prisma } = await import("@/lib/prisma");
-          prisma.logError.create({
-            data: {
-              dominio: "security",
-              origen: request.url ?? undefined,
-              metodo: request.method ?? undefined,
-              codigo: "UNAUTHORIZED",
-              mensaje: "API key inválida (timingSafeEqual)",
-              contexto: JSON.stringify(Object.fromEntries(request.headers.entries())),
-            },
-          }).catch(() => {});
-        } catch {}
-
-        throw new Response("Unauthorized", { status: 401 });
-      }
-
+      // En desarrollo permitimos llamadas sin API key para facilitar pruebas locales
+      console.warn("Dev: request sin API key, se permite para pruebas locales");
       return true;
-    } catch (err) {
-      if (err instanceof Response) throw err;
+    }
+
+    // Si la credencial parece un JWT, intentar verificarlo
+    if (providedKey.split(".").length === 3) {
+      const payload = verificarTokenJWT(providedKey);
+      if (payload) return true;
+      // si el JWT no es válido, continuar y validar contra PRIVATE_API_KEY
+    }
+
+    // Si no hay serverKey pero no estamos en producción, permitir (dev)
+    if (!serverKey && process.env.NODE_ENV !== "production") {
+      console.warn("Dev: PRIVATE_API_KEY no configurada, permitiendo credencial para pruebas");
+      return true;
+    }
+
+    const providedBuffer = Buffer.from(providedKey);
+    const serverBuffer = Buffer.from(serverKey);
+
+    if (providedBuffer.length !== serverBuffer.length || !timingSafeEqual(providedBuffer, serverBuffer)) {
+      try {
+        const { prisma } = await import("@/lib/prisma");
+        prisma.logError.create({
+          data: {
+            dominio: "security",
+            origen: request.url ?? undefined,
+            metodo: request.method ?? undefined,
+            codigo: "UNAUTHORIZED",
+            mensaje: "API key inválida (timingSafeEqual)",
+            contexto: JSON.stringify(Object.fromEntries(request.headers.entries())),
+          },
+        }).catch(() => {});
+      } catch {}
+
       throw new Response("Unauthorized", { status: 401 });
     }
+
+    return true;
+  } catch (err) {
+    if (err instanceof Response) throw err;
+    throw new Response("Unauthorized", { status: 401 });
+  }
 }
