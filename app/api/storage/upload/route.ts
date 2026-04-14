@@ -21,7 +21,25 @@ export const POST = withApiAuth(async function POST(req: Request) {
 
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 
-    const publicUrl = `${process.env.NG_APP_SUPABASE_STORAGE_URL?.replace(/\/storage\/v1\/s3$/, "")}/${bucket}/${filePath}`;
+    // Prefer SDK public URL (correct /storage/v1/object/public path and CORS headers).
+    // If bucket is private, fall back to a signed URL so the frontend can validate immediately.
+    let publicUrl: string | undefined;
+    try {
+      const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      publicUrl = publicData?.publicUrl;
+    } catch {}
+
+    if (!publicUrl) {
+      try {
+        const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(filePath, 60 * 60); // 1h
+        publicUrl = signed?.signedUrl;
+      } catch {}
+    }
+
+    // Last-resort fallback (keeps behavior but may not include CORS headers).
+    if (!publicUrl) {
+      publicUrl = `${process.env.NG_APP_SUPABASE_STORAGE_URL?.replace(/\/storage\/v1\/s3$/, "")}/${bucket}/${filePath}`;
+    }
 
     return new Response(JSON.stringify({ data, path: filePath, url: publicUrl }), { status: 201 });
   } catch (err: any) {
