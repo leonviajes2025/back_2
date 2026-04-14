@@ -123,6 +123,43 @@ export async function requireApiKey(request: Request) {
         throw new Response("Unauthorized", { status: 401 });
       }
 
+      // Si la credencial parece un JWT, intentar verificarlo primero
+      if (providedKey.split(".").length === 3) {
+        const payload = verificarTokenJWT(providedKey);
+        if (payload) return true;
+
+        // Registrar intentos de JWT inválido en producción (cabeceras enmascaradas)
+        try {
+          if (process.env.NODE_ENV === 'production') {
+            try {
+              const { prisma } = await import("@/lib/prisma");
+              const headersObj: Record<string, string> = {};
+              for (const [k, v] of request.headers.entries()) {
+                const key = k.toLowerCase();
+                if (key === 'authorization') {
+                  headersObj[key] = typeof v === 'string' ? `${String(v).slice(0, 20)}...` : '***';
+                } else if (key === 'x-api-key') {
+                  headersObj[key] = '***';
+                } else {
+                  headersObj[key] = String(v);
+                }
+              }
+
+              prisma.logError.create({
+                data: {
+                  dominio: 'security',
+                  origen: request.url ?? undefined,
+                  metodo: request.method ?? undefined,
+                  codigo: 'INVALID_JWT',
+                  mensaje: 'JWT inválido o firma incorrecta',
+                  contexto: JSON.stringify(headersObj),
+                },
+              }).catch(() => {});
+            } catch {}
+          }
+        } catch {}
+      }
+
       const providedBuffer = Buffer.from(providedKey);
       const serverBuffer = Buffer.from(serverKey);
 
