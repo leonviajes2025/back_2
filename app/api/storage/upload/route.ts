@@ -10,9 +10,13 @@ export const POST = withApiAuth(async function POST(req: Request) {
     if (!file) return new Response(JSON.stringify({ error: "No file provided" }), { status: 400 });
 
     const bucket = process.env.NG_APP_SUPABASE_BUCKET || "productos";
-    const pathPrefix = process.env.NG_APP_SUPABASE_PRODUCT_IMAGES_PATH || "productos";
+    let pathPrefix = (process.env.NG_APP_SUPABASE_PRODUCT_IMAGES_PATH ?? "").toString();
+    // Normalizar y quitar slashes al inicio/fin
+    pathPrefix = pathPrefix.replace(/^\/+|\/+$/g, "");
     const filename = (form.get("filename") as string) ?? `${Date.now()}_${file.name}`;
-    const filePath = `${pathPrefix}/${filename}`;
+    // Evitar duplicar el nombre del bucket: si el prefijo coincide con el bucket,
+    // usamos solo el filename dentro del bucket. Si no hay prefijo, usamos filename.
+    const filePath = !pathPrefix || pathPrefix === bucket ? filename : `${pathPrefix}/${filename}`;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
