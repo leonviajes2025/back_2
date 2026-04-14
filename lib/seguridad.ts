@@ -1,5 +1,4 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { createHmac } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual, createHmac, createHash } from "node:crypto";
 
 const LONGITUD_HASH = 64;
 
@@ -131,32 +130,40 @@ export async function requireApiKey(request: Request) {
         // Registrar intentos de JWT inválido en producción (cabeceras enmascaradas)
         try {
           if (process.env.NODE_ENV === 'production') {
-            try {
-              const { prisma } = await import("@/lib/prisma");
-              const headersObj: Record<string, string> = {};
-              for (const [k, v] of request.headers.entries()) {
-                const key = k.toLowerCase();
-                if (key === 'authorization') {
-                  headersObj[key] = typeof v === 'string' ? `${String(v).slice(0, 20)}...` : '***';
-                } else if (key === 'x-api-key') {
-                  headersObj[key] = '***';
-                } else {
-                  headersObj[key] = String(v);
+              try {
+                const { prisma } = await import("@/lib/prisma");
+                const headersObj: Record<string, string> = {};
+                for (const [k, v] of request.headers.entries()) {
+                  const key = k.toLowerCase();
+                  if (key === 'authorization') {
+                    headersObj[key] = typeof v === 'string' ? `${String(v).slice(0, 20)}...` : '***';
+                  } else if (key === 'x-api-key') {
+                    headersObj[key] = '***';
+                  } else {
+                    headersObj[key] = String(v);
+                  }
                 }
-              }
 
-              prisma.logError.create({
-                data: {
-                  dominio: 'security',
-                  origen: request.url ?? undefined,
-                  metodo: request.method ?? undefined,
-                  codigo: 'INVALID_JWT',
-                  mensaje: 'JWT inválido o firma incorrecta',
-                  contexto: JSON.stringify(headersObj),
-                },
-              }).catch(() => {});
-            } catch {}
-          }
+                const jwtSecret = process.env.JWT_SECRET ?? '';
+                const serverKeyForHash = process.env.PRIVATE_API_KEY ?? '';
+                const jwtSecretHash = jwtSecret ? createHash('sha256').update(jwtSecret).digest('hex').slice(0, 12) : 'none';
+                const serverKeyHash = serverKeyForHash ? createHash('sha256').update(serverKeyForHash).digest('hex').slice(0, 12) : 'none';
+
+                headersObj['_jwt_secret_hash'] = jwtSecretHash;
+                headersObj['_private_api_key_hash'] = serverKeyHash;
+
+                prisma.logError.create({
+                  data: {
+                    dominio: 'security',
+                    origen: request.url ?? undefined,
+                    metodo: request.method ?? undefined,
+                    codigo: 'INVALID_JWT',
+                    mensaje: 'JWT inválido o firma incorrecta',
+                    contexto: JSON.stringify(headersObj),
+                  },
+                }).catch(() => {});
+              } catch {}
+            }
         } catch {}
       }
 
@@ -166,6 +173,10 @@ export async function requireApiKey(request: Request) {
       if (providedBuffer.length !== serverBuffer.length || !timingSafeEqual(providedBuffer, serverBuffer)) {
         try {
           const { prisma } = await import("@/lib/prisma");
+          const headers = Object.fromEntries(request.headers.entries());
+          const jwtSecretHash = process.env.JWT_SECRET ? createHash('sha256').update(process.env.JWT_SECRET).digest('hex').slice(0,12) : 'none';
+          const serverKeyHash = process.env.PRIVATE_API_KEY ? createHash('sha256').update(process.env.PRIVATE_API_KEY).digest('hex').slice(0,12) : 'none';
+
           prisma.logError.create({
             data: {
               dominio: "security",
@@ -173,7 +184,7 @@ export async function requireApiKey(request: Request) {
               metodo: request.method ?? undefined,
               codigo: "UNAUTHORIZED",
               mensaje: "API key inválida (timingSafeEqual)",
-              contexto: JSON.stringify(Object.fromEntries(request.headers.entries())),
+              contexto: JSON.stringify({ headers, _jwt_secret_hash: jwtSecretHash, _private_api_key_hash: serverKeyHash }),
             },
           }).catch(() => {});
         } catch {}
